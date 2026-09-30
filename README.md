@@ -5,7 +5,7 @@ This repository contains a ROS2 workspace where packages can be added inside of 
 Keep in mind that the URDF is very detailed and might need to be modified in order to reduce detail.\
 Remember to go over documentation.
 
-## 1. Creating a local repository
+## 1. Creating a local repository  (DONE)
 1.1. Make sure that your GitHub account is connected to your computer.\
 1.2. Fork this repository into your GitHub account.\
 1.3. Clone your fork of this repository onto your personal machine.
@@ -27,3 +27,23 @@ Remember to go over documentation.
 ## 6. Be ready to present your solution
 6.1. Modify this README.md file in your forked workspace presenting your solutions.\
 6.2. Run and present your workspace to the Software Manager.
+
+
+
+
+
+## presentation of solution
+
+to actually run the rviz simulation, you have to firts build the package\
+
+cd ~/src/intro_rover_description
+colcon build --symlink-install
+
+
+cd ~/src/intro_rover_description
+source install/setup.bash 
+ros2 launch intro_rover_description intro_rover.launch.py
+
+cd ~/src/intro_rover_description
+source install/setup.bash 
+ros2 run rviz2 rviz2

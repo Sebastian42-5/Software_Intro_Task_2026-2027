@@ -1,0 +1,50 @@
+[0.006s] Invoking command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description -DCMAKE_INSTALL_PREFIX=/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description
+[0.148s] -- The C compiler identification is GNU 13.3.0
+[0.260s] -- The CXX compiler identification is GNU 13.3.0
+[0.275s] -- Detecting C compiler ABI info
+[0.435s] -- Detecting C compiler ABI info - done
+[0.448s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.449s] -- Detecting C compile features
+[0.450s] -- Detecting C compile features - done
+[0.470s] -- Detecting CXX compiler ABI info
+[0.630s] -- Detecting CXX compiler ABI info - done
+[0.635s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.635s] -- Detecting CXX compile features
+[0.635s] -- Detecting CXX compile features - done
+[0.641s] -- Found ament_cmake: 2.5.6 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[0.780s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[0.871s] -- Found ament_lint_auto: 0.17.5 (/opt/ros/jazzy/share/ament_lint_auto/cmake)
+[0.939s] -- Added test 'cppcheck' to perform static code analysis on C / C++ code
+[0.939s] -- Configured cppcheck include dirs: 
+[0.939s] -- Configured cppcheck exclude dirs and/or files: 
+[0.940s] -- Added test 'flake8' to check Python code syntax and style conventions
+[0.940s] -- Configured 'flake8' exclude dirs and/or files: 
+[0.940s] -- Added test 'lint_cmake' to check CMake code style
+[0.941s] -- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257
+[0.943s] -- Added test 'uncrustify' to check C / C++ code style
+[0.943s] -- Configured uncrustify additional arguments: 
+[0.944s] -- Added test 'xmllint' to check XML markup files
+[0.945s] -- Configuring done (0.9s)
+[0.946s] -- Generating done (0.0s)
+[0.947s] -- Build files have been written to: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description
+[0.950s] Invoked command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description -DCMAKE_INSTALL_PREFIX=/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description
+[0.951s] Invoking command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description -- -j24 -l24
+[0.989s] Invoked command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description -- -j24 -l24
+[1.007s] Invoking command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description
+[1.017s] -- Install configuration: ""
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/ament_index/resource_index/package_run_dependencies/intro_rover_description
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/ament_index/resource_index/parent_prefix_path/intro_rover_description
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/environment/ament_prefix_path.sh
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/environment/ament_prefix_path.dsv
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/environment/path.sh
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/environment/path.dsv
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/local_setup.bash
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/local_setup.sh
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/local_setup.zsh
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/local_setup.dsv
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/package.dsv
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/ament_index/resource_index/packages/intro_rover_description
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/cmake/intro_rover_descriptionConfig.cmake
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/cmake/intro_rover_descriptionConfig-version.cmake
+[1.017s] -- Installing: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/install/intro_rover_description/share/intro_rover_description/package.xml
+[1.020s] Invoked command in '/home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/build/intro_rover_description

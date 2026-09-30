@@ -1,10 +1,15 @@
 from math import pi, cos, sin
+from intro_rover_description.intro_rover.joint_controller import JointController
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from geometry_msgs.msg import Quarternion, Twist
 from sensor_msgs.msg import JointState
 from tf2_ros import TransformBroadcaster
+
+from joint_controller import JointController
+
+# This is the node that will make the rover dance
 
 class StatePublisherNode(Node):
     def __init__(self):

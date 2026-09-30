@@ -23,4 +23,10 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+# this was the error. It was missing the explicit installation rule to be able to run correctly
+install(
+  DIRECTORY launch urdf meshes
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_package()
