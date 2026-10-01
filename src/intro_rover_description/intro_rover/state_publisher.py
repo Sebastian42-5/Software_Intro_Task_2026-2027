@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from math import pi, cos, sin
 from intro_rover_description.intro_rover.joint_controller import JointController
 import rclpy
@@ -21,15 +23,38 @@ class StatePublisherNode(Node):
         self.nodeName = self.get_name()
         self.get_logger().info(f"{self.nodeName} has been initialized.")
 
-        degree = pi / 180.0
+        self.degree = pi / 180.0
+        self.loop_rate = self.create_timer(0.1, self.timer_callback)
 
         # initial robot state 
 
         tilt = 0.0
-        tilt_increment = 0.5 * degree
+        tilt_increment = 0.5 * self.degree
         swivel = 0.0
         angle = 0.0
         height = 0.0
         height_increment = 0.005
 
+        def timer_callback(self):
+            now = self.get_clock().now().to_msg()
+            joint_state = JointState()
+            joint_state.header.stamp = now
+            joint_state.name = ['tilt_joint', 'swivel_joint', 'height_joint']
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = StatePublisherNode()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
 

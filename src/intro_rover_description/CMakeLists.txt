@@ -24,6 +24,20 @@ if(BUILD_TESTING)
 endif()
 
 # this was the error. It was missing the explicit installation rule to be able to run correctly
+
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
+
+ament_python_install_package(intro_rover)
+
+
+install(
+  PROGRAMS
+    intro_rover/joint_controller.py
+    intro_rover/state_publisher.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(
   DIRECTORY launch urdf meshes
   DESTINATION share/${PROJECT_NAME}

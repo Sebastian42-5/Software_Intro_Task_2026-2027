@@ -7,7 +7,7 @@ import os
 def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='false')
-    urdf_file_name = 'intro_rover.urdf'
+    urdf_file_name = 'intro_rover_description.urdf'
 
     urdf = os.path.join(
         get_package_share_directory('intro_rover_description'),
@@ -20,18 +20,18 @@ def generate_launch_description():
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output='screen',
-            parameters=[{'use_sim_time': use_sim_time, 'robot_description': open(urdf).read()}]
+            parameters=[{'use_sim_time': use_sim_time}, {'robot_description': open(urdf).read()}]
         ),
-        # Node(
-        #     package='intro_rover_description',
-        #     executable='state_publisher_node',
-        #     name='state_publisher_node',
-        #     output='screen',
-        #     parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
-        # ), 
         Node(
             package='intro_rover_description',
-            executable='joint_controller',
+            executable='state_publisher.py',
+            name='state_publisher_node',
+            output='screen',
+            parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
+        ), 
+        Node(
+            package='intro_rover_description',
+            executable='joint_controller.py',
             name='joint_controller',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}]
