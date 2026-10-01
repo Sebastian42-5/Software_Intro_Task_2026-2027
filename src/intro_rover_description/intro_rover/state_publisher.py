@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-from math import pi, cos, sin
-from intro_rover_description.intro_rover.joint_controller import JointController
+import math
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
-from geometry_msgs.msg import Quarternion, Twist
+from geometry_msgs.msg import Quaternion, Twist, TransformStamped
 from sensor_msgs.msg import JointState
 from tf2_ros import TransformBroadcaster
 
-from joint_controller import JointController
 
 # This is the node that will make the rover dance
 
@@ -19,28 +17,60 @@ class StatePublisherNode(Node):
 
         qos_profile = QoSProfile(depth=10)
         self.joint_state_publisher = self.create_publisher(JointState, 'joint_states', qos_profile)
-        self.transform_broadcaster = TransformBroadcaster(self, qos_profile=qos_profile)
+        self.transform_broadcaster = TransformBroadcaster(self)
         self.nodeName = self.get_name()
         self.get_logger().info(f"{self.nodeName} has been initialized.")
 
-        self.degree = pi / 180.0
-        self.loop_rate = self.create_timer(0.1, self.timer_callback)
+        self.degree = math.pi / 180.0
+        self.create_timer(0.1, self.timer_callback)
 
-        # initial robot state 
+        # initial robot state
+        shoulder_pitch = 0.0
+        shoulder_yaw = 0.0
+        elbow_pitch = 0.0
+        elbow_roll = 0.0
+        wrist_pitch = 0.0
+        wrist_roll = 0.0
 
-        tilt = 0.0
-        tilt_increment = 0.5 * self.degree
-        swivel = 0.0
-        angle = 0.0
-        height = 0.0
-        height_increment = 0.005
+        # wheel swerve angles
+        fr_swerve_yaw = 0.0
+        fl_swerve_yaw = 0.0
+        br_swerve_yaw = 0.0
+        bl_swerve_yaw = 0.0
 
-        def timer_callback(self):
-            now = self.get_clock().now().to_msg()
-            joint_state = JointState()
-            joint_state.header.stamp = now
-            joint_state.name = ['tilt_joint', 'swivel_joint', 'height_joint']
+        fr_wheel_speed = 0.0
+        fl_wheel_speed = 0.0
+        br_wheel_speed = 0.0
+        bl_wheel_speed = 0.0
 
+    def timer_callback(self):
+        now = self.get_clock().now().to_msg()
+        joint_state = JointState()
+        joint_state.header.stamp = now
+        joint_state.name = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
+                            'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw',
+                            'fr_wheel_speed', 'fl_wheel_speed', 'br_wheel_speed', 'bl_wheel_speed']
+        joint_state.position = [math.sin(self.degree)] * len(joint_state.name)
+        self.joint_state_publisher.publish(joint_state)
+
+        odom_transform = TransformStamped()
+        odom_transform.header.stamp = now
+        odom_transform.header.frame_id = 'odom'
+        odom_transform.child_frame_id = 'base_link'
+
+        # translation and rotation of the robot in the odom frame
+        odom_transform.transform.translation.x = math.cos(self.degree) * 2.0
+        odom_transform.transform.translation.y = math.sin(self.degree) * 2.0
+        odom_transform.transform.translation.z = 0.0
+
+        odom_transform.transform.rotation.x = 0.0
+        odom_transform.transform.rotation.y = 0.0
+        odom_transform.transform.rotation.z = math.sin(self.degree / 2.0)
+        odom_transform.transform.rotation.w = math.cos(self.degree / 2.0)
+
+        self.transform_broadcaster.sendTransform(odom_transform)
+
+        self.degree += 1.0
 
 
 def main(args=None):
