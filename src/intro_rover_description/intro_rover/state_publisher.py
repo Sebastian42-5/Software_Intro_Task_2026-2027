@@ -24,32 +24,13 @@ class StatePublisherNode(Node):
         self.degree = math.pi / 180.0
         self.create_timer(0.1, self.timer_callback)
 
-        # initial robot state
-        shoulder_pitch = 0.0
-        shoulder_yaw = 0.0
-        elbow_pitch = 0.0
-        elbow_roll = 0.0
-        wrist_pitch = 0.0
-        wrist_roll = 0.0
-
-        # wheel swerve angles
-        fr_swerve_yaw = 0.0
-        fl_swerve_yaw = 0.0
-        br_swerve_yaw = 0.0
-        bl_swerve_yaw = 0.0
-
-        fr_wheel_speed = 0.0
-        fl_wheel_speed = 0.0
-        br_wheel_speed = 0.0
-        bl_wheel_speed = 0.0
 
     def timer_callback(self):
         now = self.get_clock().now().to_msg()
         joint_state = JointState()
         joint_state.header.stamp = now
         joint_state.name = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
-                            'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw',
-                            'fr_wheel_speed', 'fl_wheel_speed', 'br_wheel_speed', 'bl_wheel_speed']
+                            'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw']
         joint_state.position = [math.sin(self.degree)] * len(joint_state.name)
         self.joint_state_publisher.publish(joint_state)
 

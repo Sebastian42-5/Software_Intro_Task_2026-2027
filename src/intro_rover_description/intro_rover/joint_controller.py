@@ -11,8 +11,15 @@ class JointController(Node):
         self.angle = 0.0
         super().__init__('joint_controller')
         self.get_logger().info("Joint Controller Node has been initialized.")
+        self.publisher = self.create_publisher(JointState, 'joint_commands', 10)
+        self.t = 0.0
+        self.create_timer(0.1, self.timer_callback)
 
-        self.publisher = self.create_publisher(JointState, 'joint_states', 10)
+    def timer_callback(self):
+        joint_names = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll', 'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw']
+        joint_positions = [0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t)]
+        self.move_joints(joint_names, joint_positions)
+        self.t += 0.1
 
     def move_joints(self, joint_name, joint_position):
         msg = JointState()
@@ -21,16 +28,6 @@ class JointController(Node):
         self.publisher.publish(msg)
         msg.header.stamp = self.get_clock().now().to_msg()
 
-
-        self.angle += 0.04
-        joint_positions = [joint_position + 0.1 * math.sin(self.angle) for joint_position in msg.position]    
-
-        msg.velocity = []
-        msg.effort = []
-
-        self.publisher.publish(msg)
-        
-        
 
 def main(args=None):
     rclpy.init(args=args)
