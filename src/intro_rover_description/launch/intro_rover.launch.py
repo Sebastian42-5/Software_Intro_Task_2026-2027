@@ -37,6 +37,13 @@ def generate_launch_description():
             parameters=[{'use_sim_time': use_sim_time}]
         ), 
         Node(
+            package='intro_rover_description',
+            executable='linear_movement.py',
+            name='linear_movement_node',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}]
+        ),
+        Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             arguments=['--frame-id', 'map', '--child-frame-id', 'odom'],
@@ -46,7 +53,7 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2',
             output='screen',
-            arguments=['-d', os.path.join(get_package_share_directory('intro_rover_description'), 'config', 'intro_rover.rviz')],
+            arguments=['-d', os.path.join(get_package_share_directory('intro_rover_description'), 'config', 'config.rviz')],
             parameters=[{'use_sim_time': use_sim_time}]
         )
     ])

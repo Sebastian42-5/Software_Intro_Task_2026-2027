@@ -35,6 +35,7 @@ install(
   PROGRAMS
     intro_rover/joint_controller.py
     intro_rover/state_publisher.py
+    intro_rover/linear_movement.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

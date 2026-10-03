@@ -1,0 +1,18 @@
+digraph G {
+"odom" -> "base_link"[label=" Broadcaster: default_authority\nAverage rate: 50.199\nBuffer length: 5.0\nMost recent transform: 1791001279.42454\nOldest transform: 1791001274.424468\n"];
+"map" -> "odom"[label=" Broadcaster: default_authority\nAverage rate: 10000.0\nBuffer length: 0.0\nMost recent transform: 0.0\nOldest transform: 0.0\n"];
+"base_link" -> "bl_swerve_yaw_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"base_link" -> "br_swerve_yaw_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"shoulder_pitch_link" -> "elbow_pitch_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"shoulder_yaw_link" -> "shoulder_pitch_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"elbow_pitch_link" -> "elbow_roll_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"base_link" -> "fl_swerve_yaw_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"base_link" -> "fr_swerve_yaw_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"base_link" -> "shoulder_yaw_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"elbow_roll_link" -> "wrist_pitch_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+"wrist_pitch_link" -> "wrist_roll_link"[label=" Broadcaster: default_authority\nAverage rate: 10.204\nBuffer length: 4.9\nMost recent transform: 1791001279.38134\nOldest transform: 1791001274.481431\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1791001279.4423697"[ shape=plaintext ] ;
+}->"map";
+}

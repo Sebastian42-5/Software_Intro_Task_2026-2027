@@ -47,3 +47,8 @@ ros2 launch intro_rover_description intro_rover.launch.py
 cd ~/src/intro_rover_description
 source install/setup.bash 
 ros2 run rviz2 rviz2
+
+
+## to not forget 
+
+do chmod +x path/to/new/executable every time you add a new node script to the package!
