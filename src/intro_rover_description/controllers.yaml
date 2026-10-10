@@ -1,4 +1,29 @@
 controller_manager:
   ros_parameters:
     update_rate: 100
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+      ros_parameters:
+        use_sim_time: true
     
+    joint_position_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    
+joint_position_controller:
+  ros_parameters:
+    joints:
+      - base_to_fl_swerve_joint
+      - base_to_fr_swerve_joint
+      - base_to_bl_swerve_joint
+      - base_to_br_swerve_joint
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_pitch_joint
+      - wrist_roll_joint
+
+wheel_velocity_controller:
+  ros__parameters:
+    joints: [fr_wheel, fl_wheel, br_wheel, bl_wheel]
+    interface_name: velocity

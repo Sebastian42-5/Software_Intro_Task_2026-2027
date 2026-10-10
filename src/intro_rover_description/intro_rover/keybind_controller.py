@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
@@ -11,12 +13,15 @@ class KeybindController(Node):
         self.t = 0.0
         self.positions = [0.0] * 14
         self.create_timer(0.1, self.timer_callback)
+        self.joint_state = JointState()
+        self.joint_state.name = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll', 'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw', 'fr_wheel', 'fl_wheel', 'br_wheel', 'bl_wheel']    
 
-    def timer_callback(self):
-        joint_names = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll', 'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw', 'fr_wheel', 'fl_wheel', 'br_wheel', 'bl_wheel']
+    def timer_callback(self, increment=0.1):
+        self.joint_position += increment
+        self.joint_state.header.stamp = self.get_clock().now().to_msg()
         joint_positions = [0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t)]
-        self.publish_joint_commands(joint_names, joint_positions)
-        self.t += 0.1
+        self.publish_joint_commands(self.joint_state.name, joint_positions)
+        self.t += increment
 
     def publish_joint_commands(self, joint_names, joint_positions):
         msg = JointState()
@@ -94,10 +99,22 @@ class KeybindController(Node):
                 elif key == '0':
                     self.positions[9] -= 0.1  # Decrease bl_swerve_yaw
 
+                elif key == '\x03':  # Ctrl+C
+                    break
+
         except KeyboardInterrupt:
             pass
         finally:
             node.destroy_node()
             rclpy.shutdown()
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+
+
+def main(args=None):
+    controller = KeybindController()
+    controller.run(args=args)
+
+if __name__ == '__main__':
+    main()
+
 
