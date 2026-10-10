@@ -11,6 +11,8 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch.actions import AppendEnvironmentVariable, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from ament_index_python.packages import get_package_share_directory
+from launch.actions import RegisterEventHandler, TimerAction
+from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
 
@@ -50,28 +52,33 @@ def generate_launch_description():
         output='screen'
     )
 
-    load_joint_state_publisher_node = Node(
-        package='intro_rover_description',
-        executable='state_publisher.py',
-        name='state_publisher_node',
-        output='screen'
+    delayed_spawn = TimerAction(period=5.0, actions=[robot_spawn_node])
+
+    spawners = [
+    Node(package='controller_manager', executable='spawner',
+         arguments=[name, '--controller-manager', '/controller_manager'])
+    for name in ['joint_state_broadcaster',
+                 'arm_swerve_position_controller',
+                 'wheel_velocity_controller']
+]
+
+    spawn_controllers = RegisterEventHandler(
+        OnProcessExit(target_action=robot_spawn_node, on_exit=spawners)
     )
 
-
-
     bridge = Node(
-    package='ros_gz_bridge',
-    executable='parameter_bridge',
-    arguments=[
-        '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-        '/model/intro_rover/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
-        '/model/intro_rover/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
-    ],
-    remappings=[
-        ('/model/intro_rover/odometry', '/odom'),
-        ('/model/intro_rover/pose', '/tf'),
-    ],
-    output='screen'
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/model/intro_rover/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+            '/model/intro_rover/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+        ],
+        remappings=[
+            ('/model/intro_rover/odometry', '/odom'),
+            ('/model/intro_rover/pose', '/tf'),
+        ],
+        output='screen'
     )
 
     return LaunchDescription([
@@ -79,7 +86,7 @@ def generate_launch_description():
         gazebo_launch,
         robot_state_publisher_node,
         robot_spawn_node,
+        spawn_controllers,
         bridge,
-        load_joint_state_publisher_node
     ])
 

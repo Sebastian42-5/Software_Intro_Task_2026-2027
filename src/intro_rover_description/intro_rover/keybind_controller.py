@@ -8,10 +8,13 @@ from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import Twist, TransformStamped
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster
+import os
 
 JOINT_NAMES = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
                'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw',
                'fr_wheel', 'fl_wheel', 'br_wheel', 'bl_wheel']
+
+# every tuple of the arm keys represents index followed by direction
 
 ARM_KEYS = {
     'q': (0, 1), 'a': (0, -1),   # shoulder_pitch
@@ -45,6 +48,12 @@ class KeybindController(Node):
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
 
+        self.declare_parameter('mode', 'gazebo')
+        self.mode = self.get_parameter('mode').value
+        self.wheel_vel = [0.0] * 4
+        self.arm_pub = self.create_publisher(Float64MultiArray, '/arm_swerve_position_controller/commands', 10)
+        self.wheel_pub = self.create_publisher(Float64MultiArray, '/wheel_velocity_controller/commands', 10)
+
         p = lambda n: self.get_parameter(n).value
         self.joint_step = p('joint_step')
         self.lin_speed = p('lin_speed')
@@ -55,7 +64,8 @@ class KeybindController(Node):
         self.odom_frame = p('odom_frame')
         self.base_frame = p('base_frame')
 
-         # module order matches JOINT_NAMES: fr, fl, br, bl  (x fwd, y left)
+        # module order matches JOINT_NAMES: fr, fl, br, bl  (x fwd, y left)
+        # these module are used for the orientation of the wheels
         mx, my = p('module_x'), p('module_y')
         self.modules = [(mx, -my), (mx, my), (-mx, -my), (-mx, my)]
 
@@ -71,108 +81,149 @@ class KeybindController(Node):
 
         self.dt = 0.05
         self.create_timer(self.dt, self.update)
-        print(HELP)
+        print("""
+            press q/a to control the shoulder pitch
+            press w/s to control the shoulder yaw
+            press e/d to control the elbow pitch
+            press r/f to control the elbow roll
+            press t/g to control the wrist pitch 
+            press 1/2 to control the wrist roll
+
+            press i/k to drive forward or backward
+            press j/l to drive to the left or to the right 
+            press u/o to rotate to the left or to the right
+        """)
 
 
-    def timer_callback(self, increment=0.1):
-        self.joint_position += increment
-        self.joint_state.header.stamp = self.get_clock().now().to_msg()
-        joint_positions = [0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t), 0.5 * math.sin(self.t), 0.5 * math.cos(self.t)]
-        self.publish_joint_commands(self.joint_state.name, joint_positions)
-        self.t += increment
+    def read_keys(self):
+        keys = ''
+        fd = sys.stdin.fileno
+        while select.select([fd], [], [], 0)[0]:
+            keys += os.read(fd, 32).decode(errors = 'ignore')
+        return keys
 
-    def publish_joint_commands(self, joint_names, joint_positions):
-        msg = JointState()
-        msg.name = joint_names
-        msg.position = joint_positions
-        self.publisher.publish(msg)
-        self.get_logger().info(f"Published JointState message: {msg}")
+    def update(self):
+        now = self.get_clock().now()
 
-    def get_key(settings):
-        tty.setraw(sys.stdin.fileno())
-        rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
-        if rlist:
-            key = sys.stdin.read(1)
-        else:
-            key = ''
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, termios.tcgetattr(sys.stdin))
-        return key
+        for key in self.read_keys():
+            if key in ARM_KEYS:
+                i, direction =  ARM_KEYS[key]
+                self.positions[i] += direction * self.joint_step
+            elif key in DRIVE_KEYS:
+                dx, dy, d_omega = DRIVE_KEYS[key]
+                self.positions[i] += (dx * self.lin_speed, dy * self.lin_speed, d_omega * self.ang_speed)
+                self.last_drive = now
+            elif key == ' ':
+                self.cmd = (0.0, 0.0, 0.0)
 
-    def run(self, args=None):
-        settings = termios.tcgetattr(sys.stdin)
-        rclpy.init(args=args)
-        node = KeybindController()
+        # if a key gets pressed too briefly and there is no message sent 
 
-        try:
-            while True:
-                key = node.get_key(settings)
+        if (now - self.last_drive).nanoseconds * 1e-9 > self.hold_time:
+            self.cmd = (0.0, 0.0, 0.0)
 
-                if key == 'q':
-                    self.positions[0] += 0.1  # Increase shoulder_pitch
-                elif key == 'a':
-                    self.positions[0] -= 0.1  # Decrease shoulder_pitch
+        # send transforms for linear or angular positions
 
-                elif key == 'w':
-                    self.positions[1] += 0.1  # Increase shoulder_yaw
-                elif key == 's':
-                    self.positions[1] -= 0.1  # Decrease shoulder_yaw
+        vx, vy, wz = self.cmd
+        self.update_swerve_drive(vx, vy, wz)
+        self.integrate_odom(vx, vy, wz)
+        self.publish(now, vx, vy, wz)
 
-                elif key == 'e':
-                    self.positions[2] += 0.1  # Increase elbow_pitch
-                elif key == 'd':
-                    self.positions[2] -= 0.1  # Decrease elbow_pitch
+        def update_swerve_drive(self, vx, vy, wz):
+            '''rotation inverse kinematics logic and robot orientation'''
+            for i, (mx, my) in enumerate(self.modules):
+                vxi = vx - wz * my
+                vyi = vy + wz * mx
+                speed = math.hypot(vxi, vyi)
+                if speed > 1e-3:                         # hold last angle when stopped
+                    self.positions[6 + i] = math.atan2(vyi, vxi)
+                # this is to control the wheel linear velocity in rviz
+                self.positions[10 + i] += self.wheel_vel[i] * self.dt 
 
-                elif key == 'r':
-                    self.positions[3] += 0.1  # Increase elbow_roll
-                elif key == 'f':
-                    self.positions[3] -= 0.1  # Decrease elbow_roll
+        def integrate_odom(self, vx, vy, wz):
+            self.x += (vx * math.cos(self.yaw) - vy * math.sin(self.yaw)) * self.dt
+            self.y += (vx * math.sin(self.yaw) + vy * math.cos(self.yaw)) * self.dt
+            self.yaw += wz * self.dt
 
-                elif key == 't':
-                    self.positions[4] += 0.1  # Increase wrist_pitch
-                elif key == 'g':
-                    self.positions[4] -= 0.1  # Decrease wrist_pitch
+        def publish(self, now, vx, vy, wz):
+            if self.mode == 'gazebo':
+                    self.arm_pub.publish(Float64MultiArray(data=self.positions[:10]))
+                    self.wheel_pub.publish(Float64MultiArray(data=list(self.wheel_vel)))
+            else:
+                self.publish_rviz(now, vx, vy, wz)
 
-                elif key == '1':
-                    self.positions[5] += 0.1  # Increase wrist_roll
-                elif key == '2':
-                    self.positions[5] -= 0.1  # Decrease wrist_roll
 
-                elif key == '3':
-                    self.positions[6] += 0.1  # Increase fr_swerve_yaw
-                elif key == '4':
-                    self.positions[6] -= 0.1  # Decrease fr_swerve_yaw
+        def publish_rviz(self, now, vx, vy, wz):
+            stamp = now.to_msg()
 
-                elif key == '5':
-                    self.positions[7] += 0.1  # Increase fl_swerve_yaw
-                elif key == '6':
-                    self.positions[7] -= 0.1  # Decrease fl_swerve_yaw
+            joint_state = JointState()
+            joint_state.header.stamp = stamp
+            joint_state.name = JOINT_NAMES
+            joint_state.position = list(self.positions)
 
-                elif key == '7':
-                    self.positions[8] += 0.1  # Increase br_swerve_yaw
-                elif key == '8':
-                    self.positions[8] -= 0.1  # Decrease br_swerve_yaw
+            if self.mode == 'gazebo':
+                self.arm_pub.publish(Float64MultiArray(data=self.positions[:10]))
+                self.wheel_pub.publish(Float64MultiArray(data=list(self.wheel_vel)))
+            else:
+                self.publish_rviz(now, vx, vy, wz)
+                
+            # velocity commands
 
-                elif key == '9':
-                    self.positions[9] += 0.1  # Increase bl_swerve_yaw
-                elif key == '0':
-                    self.positions[9] -= 0.1  # Decrease bl_swerve_yaw
+            twist = Twist()
+            twist.linear.x, twist.linear.y, twist.angular.z = vx, vy, wz
+            self.cmd_vel_pub.publish(twist)
 
-                elif key == '\x03':  # Ctrl+C
-                    break
+            if not self.publish_odom:
+                return
 
-        except KeyboardInterrupt:
-            pass
-        finally:
-            node.destroy_node()
-            rclpy.shutdown()
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+            # yaw to quaternion conversion for z rotation 
 
+            qz, qw = math.sin(self.yaw / 2.0), math.cos(self.yaw / 2.0)
+
+            # 3D spatial translation between parent and child link frame
+
+            tf = TransformStamped()
+            tf.header.stamp = stamp
+            tf.header.frame_id = self.odom_frame
+            tf.child_frame_id = self.base_frame
+            tf.transform.translation.x = self.x
+            tf.transform.translation.y = self.y
+            tf.transform.rotation.z = qz
+            tf.transform.rotation.w = qw
+            self.tf_broadcaster.sendTransform(tf)
+
+            # pose publisher topic
+
+            odom = Odometry()
+            odom.header.stamp = stamp
+            odom.header.frame_id = self.odom_frame
+            odom.child_frame_id = self.base_frame
+            odom.pose.pose.position.x = self.x
+            odom.pose.pose.position.y = self.y
+            odom.pose.pose.orientation.z = qz
+            odom.pose.pose.orientation.w = qw
+            odom.twist.twist = twist
+            self.odom_pub.publish(odom)
+
+        
 
 def main(args=None):
+    rclpy.init(args=args)
+    settings = termios.tcgetattr(sys.stdin)
     controller = KeybindController()
-    controller.run(args=args)
+    
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+        controller.destroy_node()
+        rclpy.try_shutdown()
+
 
 if __name__ == '__main__':
     main()
+
 
 
