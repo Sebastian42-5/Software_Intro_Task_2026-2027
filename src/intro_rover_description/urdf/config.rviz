@@ -51,7 +51,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
-      Description File: /home/buffshark444/Software_Intro_Task_2026-2027/install/intro_rover_description/share/intro_rover_description/urdf/intro_rover_description.urdf
+      Description File: /home/buffshark444/Software_Intro_Task_2026-2027/src/intro_rover_description/urdf/intro_rover_description.urdf
       Description Source: File
       Description Topic:
         Depth: 5
@@ -195,25 +195,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.256966590881348
+      Distance: 4.492053985595703
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.04993602633476257
+        Y: 0.1834685057401657
+        Z: 0.21291156113147736
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2853984534740448
+      Pitch: 0.2503986060619354
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.005397915840149
+      Yaw: 0.4453967213630676
     Saved: ~
 Window Geometry:
   Displays:

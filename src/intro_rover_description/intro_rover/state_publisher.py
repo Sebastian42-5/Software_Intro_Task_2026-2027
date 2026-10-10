@@ -26,7 +26,7 @@ class StatePublisherNode(Node):
         self.linear_movement_subscriber = self.create_subscription(Twist, 'cmd_vel', self.linear_movement_callback, qos_profile)  
 
         self.join_positions = { name: 0.0 for name in ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
-                    'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw']}
+                    'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw', 'fr_wheel', 'fl_wheel', 'br_wheel', 'bl_wheel'] }
 
         self.create_timer(0.1, self.timer_callback)
         self.get_logger().info(f"{self.nodeName} has been initialized.")

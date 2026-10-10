@@ -6,7 +6,7 @@ import os
 
 def generate_launch_description():
 
-    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     urdf_file_name = 'intro_rover_description.urdf'
 
     urdf = os.path.join(

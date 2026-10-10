@@ -1,0 +1,4 @@
+controller_manager:
+  ros_parameters:
+    update_rate: 100
+    
