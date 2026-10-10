@@ -8,7 +8,8 @@ from launch_ros.substitutions import FindPackageShare
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.actions import AppendEnvironmentVariable
+from launch.actions import AppendEnvironmentVariable, RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
@@ -56,18 +57,22 @@ def generate_launch_description():
         output='screen'
     )
 
+
+
     bridge = Node(
     package='ros_gz_bridge',
     executable='parameter_bridge',
     arguments=[
         '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-        '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
-        '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry',
-        '/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
-        '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
+        '/model/intro_rover/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry',
+        '/model/intro_rover/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+    ],
+    remappings=[
+        ('/model/intro_rover/odometry', '/odom'),
+        ('/model/intro_rover/pose', '/tf'),
     ],
     output='screen'
-)
+    )
 
     return LaunchDescription([
         set_gz_ressource_path,

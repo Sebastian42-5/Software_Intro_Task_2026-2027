@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 import math, sys, select, termios, tty
+from std_msgs.msg import Float64MultiArray
 
 class KeybindController(Node):
     def __init__(self):
