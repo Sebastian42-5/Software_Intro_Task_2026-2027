@@ -97,11 +97,12 @@ class KeybindController(Node):
 
     def read_keys(self):
         keys = ''
-        fd = sys.stdin.fileno
+        fd = sys.stdin.fileno()
         while select.select([fd], [], [], 0)[0]:
             keys += os.read(fd, 32).decode(errors = 'ignore')
         return keys
 
+        
     def update(self):
         now = self.get_clock().now()
 
@@ -111,7 +112,7 @@ class KeybindController(Node):
                 self.positions[i] += direction * self.joint_step
             elif key in DRIVE_KEYS:
                 dx, dy, d_omega = DRIVE_KEYS[key]
-                self.positions[i] += (dx * self.lin_speed, dy * self.lin_speed, d_omega * self.ang_speed)
+                self.cmd = (dx * self.lin_speed, dy * self.lin_speed, d_omega * self.ang_speed)
                 self.last_drive = now
             elif key == ' ':
                 self.cmd = (0.0, 0.0, 0.0)
@@ -128,81 +129,78 @@ class KeybindController(Node):
         self.integrate_odom(vx, vy, wz)
         self.publish(now, vx, vy, wz)
 
-        def update_swerve_drive(self, vx, vy, wz):
-            '''rotation inverse kinematics logic and robot orientation'''
-            for i, (mx, my) in enumerate(self.modules):
-                vxi = vx - wz * my
-                vyi = vy + wz * mx
-                speed = math.hypot(vxi, vyi)
-                if speed > 1e-3:                         # hold last angle when stopped
-                    self.positions[6 + i] = math.atan2(vyi, vxi)
-                # this is to control the wheel linear velocity in rviz
-                self.positions[10 + i] += self.wheel_vel[i] * self.dt 
+    def update_swerve_drive(self, vx, vy, wz):
+        '''rotation inverse kinematics logic and robot orientation'''
+        for i, (mx, my) in enumerate(self.modules):
+            vxi = vx - wz * my
+            vyi = vy + wz * mx
+            speed = math.hypot(vxi, vyi)
+            if speed > 1e-3:                         # hold last angle when stopped
+                self.positions[6 + i] = math.atan2(vyi, vxi)
+            self.wheel_vel[i] = speed / self.wheel_radius     # restore this
+            # this is to control the wheel linear velocity in rviz
+            self.positions[10 + i] += self.wheel_vel[i] * self.dt 
 
-        def integrate_odom(self, vx, vy, wz):
-            self.x += (vx * math.cos(self.yaw) - vy * math.sin(self.yaw)) * self.dt
-            self.y += (vx * math.sin(self.yaw) + vy * math.cos(self.yaw)) * self.dt
-            self.yaw += wz * self.dt
+    def integrate_odom(self, vx, vy, wz):
+        self.x += (vx * math.cos(self.yaw) - vy * math.sin(self.yaw)) * self.dt
+        self.y += (vx * math.sin(self.yaw) + vy * math.cos(self.yaw)) * self.dt
+        self.yaw += wz * self.dt
 
-        def publish(self, now, vx, vy, wz):
-            if self.mode == 'gazebo':
-                    self.arm_pub.publish(Float64MultiArray(data=self.positions[:10]))
-                    self.wheel_pub.publish(Float64MultiArray(data=list(self.wheel_vel)))
-            else:
-                self.publish_rviz(now, vx, vy, wz)
-
-
-        def publish_rviz(self, now, vx, vy, wz):
-            stamp = now.to_msg()
-
-            joint_state = JointState()
-            joint_state.header.stamp = stamp
-            joint_state.name = JOINT_NAMES
-            joint_state.position = list(self.positions)
-
-            if self.mode == 'gazebo':
+    def publish(self, now, vx, vy, wz):
+        if self.mode == 'gazebo':
                 self.arm_pub.publish(Float64MultiArray(data=self.positions[:10]))
                 self.wheel_pub.publish(Float64MultiArray(data=list(self.wheel_vel)))
-            else:
-                self.publish_rviz(now, vx, vy, wz)
-                
-            # velocity commands
+        else:
+            self.publish_rviz(now, vx, vy, wz)
 
-            twist = Twist()
-            twist.linear.x, twist.linear.y, twist.angular.z = vx, vy, wz
-            self.cmd_vel_pub.publish(twist)
 
-            if not self.publish_odom:
-                return
+    def publish_rviz(self, now, vx, vy, wz):
+        stamp = now.to_msg()
 
-            # yaw to quaternion conversion for z rotation 
+        joint_state = JointState()
+        joint_state.header.stamp = stamp
+        joint_state.name = JOINT_NAMES
+        joint_state.position = list(self.positions)
+            
+        # velocity commands
 
-            qz, qw = math.sin(self.yaw / 2.0), math.cos(self.yaw / 2.0)
+        twist = Twist()
+        twist.linear.x, twist.linear.y, twist.angular.z = vx, vy, wz
+        self.cmd_vel_pub.publish(twist)
 
-            # 3D spatial translation between parent and child link frame
+        if not self.publish_odom:
+            return
 
-            tf = TransformStamped()
-            tf.header.stamp = stamp
-            tf.header.frame_id = self.odom_frame
-            tf.child_frame_id = self.base_frame
-            tf.transform.translation.x = self.x
-            tf.transform.translation.y = self.y
-            tf.transform.rotation.z = qz
-            tf.transform.rotation.w = qw
-            self.tf_broadcaster.sendTransform(tf)
+        # yaw to quaternion conversion for z rotation 
 
-            # pose publisher topic
+        qz, qw = math.sin(self.yaw / 2.0), math.cos(self.yaw / 2.0)
 
-            odom = Odometry()
-            odom.header.stamp = stamp
-            odom.header.frame_id = self.odom_frame
-            odom.child_frame_id = self.base_frame
-            odom.pose.pose.position.x = self.x
-            odom.pose.pose.position.y = self.y
-            odom.pose.pose.orientation.z = qz
-            odom.pose.pose.orientation.w = qw
-            odom.twist.twist = twist
-            self.odom_pub.publish(odom)
+        # 3D spatial translation between parent and child link frame
+
+        tf = TransformStamped()
+        tf.header.stamp = stamp
+        tf.header.frame_id = self.odom_frame
+        tf.child_frame_id = self.base_frame
+        tf.transform.translation.x = self.x
+        tf.transform.translation.y = self.y
+        tf.transform.rotation.z = qz
+        tf.transform.rotation.w = qw
+        self.tf_broadcaster.sendTransform(tf)
+
+        # pose publisher topic
+
+        odom = Odometry()
+        odom.header.stamp = stamp
+        odom.header.frame_id = self.odom_frame
+        odom.child_frame_id = self.base_frame
+        odom.pose.pose.position.x = self.x
+        odom.pose.pose.position.y = self.y
+        odom.pose.pose.orientation.z = qz
+        odom.pose.pose.orientation.w = qw
+        odom.twist.twist = twist
+        self.odom_pub.publish(odom)
+
+        self.joint_pub.publish(joint_state)
 
         
 

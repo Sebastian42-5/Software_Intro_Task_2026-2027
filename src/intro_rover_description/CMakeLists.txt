@@ -36,6 +36,7 @@ install(
     intro_rover/joint_controller.py
     intro_rover/state_publisher.py
     intro_rover/linear_movement.py
+    intro_rover/keybind_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

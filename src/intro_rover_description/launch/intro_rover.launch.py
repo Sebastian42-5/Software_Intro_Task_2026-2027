@@ -6,7 +6,7 @@ import os
 
 def generate_launch_description():
 
-    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='false')
     urdf_file_name = 'intro_rover_description.urdf'
 
     urdf = os.path.join(
@@ -22,27 +22,38 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}, {'robot_description': open(urdf).read()}]
         ),
+        # Node(
+        #     package='intro_rover_description',
+        #     executable='state_publisher.py',
+        #     name='state_publisher_node',
+        #     output='screen',
+        #     parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
+        # ), 
+        # Node(
+        #     package='intro_rover_description',
+        #     executable='joint_controller.py',
+        #     name='joint_controller',
+        #     output='screen',
+        #     parameters=[{'use_sim_time': use_sim_time}]
+        # ), 
+        # Node(
+        #     package='intro_rover_description',
+        #     executable='linear_movement.py',
+        #     name='linear_movement_node',
+        #     output='screen',
+        #     parameters=[{'use_sim_time': use_sim_time}]
+        # ),
+
         Node(
             package='intro_rover_description',
-            executable='state_publisher.py',
-            name='state_publisher_node',
+            executable='keybind_controller.py',
+            name='keybind_controller',
             output='screen',
-            parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
-        ), 
-        Node(
-            package='intro_rover_description',
-            executable='joint_controller.py',
-            name='joint_controller',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}]
-        ), 
-        Node(
-            package='intro_rover_description',
-            executable='linear_movement.py',
-            name='linear_movement_node',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}]
+            prefix='xterm -hold -e',
+            parameters=[{'mode': 'rviz', 'use_sim_time': use_sim_time}],
+            remappings=[('joint_commands', 'joint_states')],
         ),
+
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',

@@ -52,3 +52,9 @@ ros2 run rviz2 rviz2
 ## to not forget 
 
 do chmod +x path/to/new/executable every time you add a new node script to the package!
+
+
+
+ros2 run intro_rover_description keybind_controller.py --ros-args -p mode:=rviz -r joint_commands:=joint_states
+
+ros2 run intro_rover_description keybind_controller.py --ros-args -p mode:=gazebo -p use_sim_time:=true

@@ -56,7 +56,7 @@ def generate_launch_description():
 
     spawners = [
     Node(package='controller_manager', executable='spawner',
-         arguments=[name, '--controller-manager', '/controller_manager'])
+         arguments=[name, '--controller-manager', '/controller_manager', '--controller-manager-timeout', '60'])
     for name in ['joint_state_broadcaster',
                  'arm_swerve_position_controller',
                  'wheel_velocity_controller']
@@ -87,6 +87,6 @@ def generate_launch_description():
         robot_state_publisher_node,
         robot_spawn_node,
         spawn_controllers,
-        bridge,
+        bridge
     ])
 

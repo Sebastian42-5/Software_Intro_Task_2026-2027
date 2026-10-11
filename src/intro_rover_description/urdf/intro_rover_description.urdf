@@ -825,7 +825,7 @@
 
   <ros2_control name="intro_rover_ros2_control" type="system">
     <hardware>
-      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+      <plugin>gazebo_ros2_control/GazeboSimSystem</plugin>
     </hardware>
     <joint name="shoulder_yaw">
       <command_interface name="position" />
@@ -858,6 +858,7 @@
     <joint name="fr_wheel">
       <command_interface name="velocity" />
       <state_interface name="velocity" />
+      <state_interface name="position"/>
     </joint>
     <joint name="br_swerve_yaw">
       <command_interface name="position" />
@@ -866,6 +867,7 @@
     <joint name="br_wheel">
       <command_interface name="velocity" />
       <state_interface name="velocity" />
+      <state_interface name="position"/>
     </joint>
     <joint name="fl_swerve_yaw">
       <command_interface name="position" />
@@ -874,6 +876,7 @@
     <joint name="fl_wheel">
       <command_interface name="velocity" />
       <state_interface name="velocity" />
+      <state_interface name="position"/>
     </joint>
     <joint name="bl_swerve_yaw">
       <command_interface name="position" />
@@ -882,6 +885,7 @@
     <joint name="bl_wheel">
       <command_interface name="velocity" />
       <state_interface name="velocity" />
+      <state_interface name="position"/>
     </joint>
   </ros2_control>
 
