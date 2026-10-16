@@ -30,7 +30,6 @@ find_package(rclpy REQUIRED)
 
 ament_python_install_package(intro_rover)
 
-
 install(
   PROGRAMS
     intro_rover/joint_controller.py
@@ -38,6 +37,11 @@ install(
     intro_rover/linear_movement.py
     intro_rover/keybind_controller.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
 )
 
 install(

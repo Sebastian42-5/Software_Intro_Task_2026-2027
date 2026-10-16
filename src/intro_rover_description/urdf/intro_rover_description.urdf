@@ -825,7 +825,7 @@
 
   <ros2_control name="intro_rover_ros2_control" type="system">
     <hardware>
-      <plugin>gazebo_ros2_control/GazeboSimSystem</plugin>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
     <joint name="shoulder_yaw">
       <command_interface name="position" />
