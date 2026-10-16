@@ -31,6 +31,8 @@ DRIVE_KEYS = {
     'u': (0, 0, 1), 'o': (0, 0, -1) # rotation left to right
 }
 
+WHEEL_SIGN = [1.0, -1.0, 1.0, -1.0] # left wheels have a negative sign and positive wheels have a positive sign corresponding to the urdf poisiton values
+
 class KeybindController(Node):
     def __init__(self):
         super().__init__('keybind_controller')
@@ -41,9 +43,9 @@ class KeybindController(Node):
         self.declare_parameter('lin_speed', 0.5)         # m/s
         self.declare_parameter('ang_speed', 1.0)         # rad/s
         self.declare_parameter('hold_time', 0.3)         # s a drive key stays "held"
-        self.declare_parameter('wheel_radius', 0.05)     # m  (set to your rover)
-        self.declare_parameter('module_x', 0.2)          # m, half wheelbase
-        self.declare_parameter('module_y', 0.2)          # m, half track width
+        self.declare_parameter('wheel_radius', 0.21)     # m  (set to your rover)
+        self.declare_parameter('module_x', 0.44)          # m, half wheelbase  
+        self.declare_parameter('module_y', 0.515)          # m, half track width
         self.declare_parameter('publish_odom', True)
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
@@ -64,10 +66,22 @@ class KeybindController(Node):
         self.odom_frame = p('odom_frame')
         self.base_frame = p('base_frame')
 
+
         # module order matches JOINT_NAMES: fr, fl, br, bl  (x fwd, y left)
         # these module are used for the orientation of the wheels
         mx, my = p('module_x'), p('module_y')
-        self.modules = [(mx, -my), (mx, my), (-mx, -my), (-mx, my)]
+        self.modules = [(mx, my), (mx, -my), (-mx, -my), (-mx, my)]
+
+        # clamp arm joint limits
+
+        self.joint_limits = [
+            (-1.57, 1.57), # shoulder pitch
+            (-math.inf, math.inf), # shoulder yaw (continuous)
+            (-1.57, 1.57), # elbow pitch 
+            (-math.inf, math.inf), # elbow roll (continous)
+            (-1.57, 1.57), # wrist pitch
+            (-math.inf, math.inf) # wrist roll
+        ]
 
         self.joint_pub = self.create_publisher(JointState, p('joint_topic'), 10)
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
@@ -109,7 +123,8 @@ class KeybindController(Node):
         for key in self.read_keys():
             if key in ARM_KEYS:
                 i, direction =  ARM_KEYS[key]
-                self.positions[i] += direction * self.joint_step
+                low, high = self.joint_limits[i]
+                self.positions[i] = max(low, min(high, self.positions[i] + direction * self.joint_step))
             elif key in DRIVE_KEYS:
                 dx, dy, d_omega = DRIVE_KEYS[key]
                 self.cmd = (dx * self.lin_speed, dy * self.lin_speed, d_omega * self.ang_speed)
@@ -136,8 +151,18 @@ class KeybindController(Node):
             vyi = vy + wz * mx
             speed = math.hypot(vxi, vyi)
             if speed > 1e-3:                         # hold last angle when stopped
-                self.positions[6 + i] = math.atan2(vyi, vxi)
-            self.wheel_vel[i] = speed / self.wheel_radius     # restore this
+                angle = math.atan2(vyi, vxi)
+                sign = 1.0
+                if angle > math.pi / 2:
+                    sign = -1.0    # flip the sign if the swerve drive turns more than positive 90 degrees
+                    angle -= math.pi 
+                elif angle < -math.pi / 2:
+                    sign = -1.0 # flip the sign if the swerve drive turns less than negative 90 degrees
+                    angle += math.pi 
+                self.positions[6 + i] = max(-1.57, min(1.57, angle))
+                self.wheel_vel[i] = sign * WHEEL_SIGN[i] * speed / self.wheel_radius 
+            else:
+                self.wheel_vel[i] = 0.0
             # this is to control the wheel linear velocity in rviz
             self.positions[10 + i] += self.wheel_vel[i] * self.dt 
 

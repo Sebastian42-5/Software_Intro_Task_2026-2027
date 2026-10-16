@@ -22,6 +22,8 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}, {'robot_description': open(urdf).read()}]
         ),
+
+        # to comment out to go into controlling mode
         # Node(
         #     package='intro_rover_description',
         #     executable='state_publisher.py',
@@ -29,20 +31,24 @@ def generate_launch_description():
         #     output='screen',
         #     parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
         # ), 
-        # Node(
-        #     package='intro_rover_description',
-        #     executable='joint_controller.py',
-        #     name='joint_controller',
-        #     output='screen',
-        #     parameters=[{'use_sim_time': use_sim_time}]
-        # ), 
-        # Node(
-        #     package='intro_rover_description',
-        #     executable='linear_movement.py',
-        #     name='linear_movement_node',
-        #     output='screen',
-        #     parameters=[{'use_sim_time': use_sim_time}]
-        # ),
+        # controlling mode ends here
+        
+        Node(
+            package='intro_rover_description',
+            executable='joint_controller.py',
+            name='joint_controller',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}]
+        ), 
+        Node(
+            package='intro_rover_description',
+            executable='linear_movement.py',
+            name='linear_movement_node',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}]
+        ),
+
+        # to comment out to go into dancing mode
 
         Node(
             package='intro_rover_description',
@@ -53,6 +59,8 @@ def generate_launch_description():
             parameters=[{'mode': 'rviz', 'use_sim_time': use_sim_time}],
             remappings=[('joint_commands', 'joint_states')],
         ),
+
+        # dancing mode ends here
 
         Node(
             package='tf2_ros',
