@@ -24,13 +24,13 @@ def generate_launch_description():
         ),
 
         # to comment out to go into controlling mode
-        # Node(
-        #     package='intro_rover_description',
-        #     executable='state_publisher.py',
-        #     name='state_publisher_node',
-        #     output='screen',
-        #     parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
-        # ), 
+        Node(
+            package='intro_rover_description',
+            executable='state_publisher.py',
+            name='state_publisher_node',
+            output='screen',
+            parameters=[{'param_name': 'param_value'}, {'use_sim_time': use_sim_time}]
+        ), 
         # controlling mode ends here
         
         Node(
@@ -50,15 +50,15 @@ def generate_launch_description():
 
         # to comment out to go into dancing mode
 
-        Node(
-            package='intro_rover_description',
-            executable='keybind_controller.py',
-            name='keybind_controller',
-            output='screen',
-            prefix='xterm -hold -e',
-            parameters=[{'mode': 'rviz', 'use_sim_time': use_sim_time}],
-            remappings=[('joint_commands', 'joint_states')],
-        ),
+        # Node(
+        #     package='intro_rover_description',
+        #     executable='keybind_controller.py',
+        #     name='keybind_controller',
+        #     output='screen',
+        #     prefix='xterm -hold -e',
+        #     parameters=[{'mode': 'rviz', 'use_sim_time': use_sim_time}],
+        #     remappings=[('joint_commands', 'joint_states')],
+        # ),
 
         # dancing mode ends here
 
