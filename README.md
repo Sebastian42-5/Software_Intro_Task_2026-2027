@@ -71,6 +71,8 @@ Also, to setup the colcon build, the required directories for meshes urdf launch
 At the package.xml, I added the dependencies to use amentcpython to launch and added other dependencies like sensors_msg to get Joint_state, as well as 
 the launch_ros to configure and launch the created nodes.
 
+State interface is to read and command interface is to write data
+
 
 - Dancing mode 
 

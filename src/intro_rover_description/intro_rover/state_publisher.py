@@ -40,7 +40,6 @@ class StatePublisherNode(Node):
                 self.get_logger().warn(f"Received command for unknown joint: {name}", throttle_duration_sec=1.0)
 
     def linear_movement_callback(self, msg):
-        # Here you can implement how the linear movement commands affect the robot's state
         self.get_logger().info(f"Received linear movement command: linear.x={msg.linear.x}, angular.z={msg.angular.z}")
 
 

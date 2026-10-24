@@ -77,9 +77,9 @@ class KeybindController(Node):
         self.joint_limits = [
             (-1.57, 1.57), # shoulder pitch
             (-math.inf, math.inf), # shoulder yaw (continuous)
-            (-1.57, 1.57), # elbow pitch 
-            (-math.inf, math.inf), # elbow roll (continous)
+            (-1.57, 1.57), # elbow pitch s)
             (-1.57, 1.57), # wrist pitch
+            (-math.inf, math.inf), # elbow roll (continou
             (-math.inf, math.inf) # wrist roll
         ]
 
