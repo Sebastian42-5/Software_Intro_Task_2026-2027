@@ -9,6 +9,8 @@ from geometry_msgs.msg import Twist, TransformStamped
 from nav_msgs.msg import Odometry
 from tf2_ros import TransformBroadcaster
 import os
+import numpy as np
+import sympy as sp
 
 JOINT_NAMES = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
                'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw',
@@ -33,6 +35,8 @@ JOINT_NAMES = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'w
 
 
 
+def sign(x):
+    return (x > 0) - (x < 0)
 
 
 WHEEL_SIGN = [1.0, -1.0, 1.0, -1.0] # left wheels have a negative sign and positive wheels have a positive sign corresponding to the urdf poisiton values
@@ -83,7 +87,7 @@ class KeybindController(Node):
         self.vy = 0.0
         self.ang_speed = 0.0
 
-        self.wheel_positions = [1.0, -1.0, 1.0, -1.0]   # wl, wr, lf, lr
+        self.local_frame_wheel_positions = [0.05, 0.05, -0.0002104, -0.000212]   # wl, wr, lf, lr in meters
 
         # wheel index : min and max angle constraint 
 
@@ -94,12 +98,16 @@ class KeybindController(Node):
             4 : (-math.pi/2, math.pi/2),
         }
 
+        # front left, back left, front right, back right
+
 
 
         # module order matches JOINT_NAMES: fr, fl, br, bl  (x fwd, y left)
         # these module are used for the orientation of the wheels
         mx, my = p('module_x'), p('module_y')
-        self.modules = [(mx, my), (mx, -my), (-mx, -my), (-mx, my)]
+
+        self.modules = [(-mx, my), (-mx, -my), (mx, -my), (mx, my)] # these modules correspond to wl, wr, lr, lf
+
 
         # clamp arm joint limits
 
@@ -178,10 +186,38 @@ class KeybindController(Node):
         for i, (mx, my) in enumerate(self.modules):
             vxi = vx - wz * my
             vyi = vy + wz * mx
+
+            delta_max = self.steering_wheel_constraints[i + 1][1]
+            delta_min = self.steering_wheel_constraints[i + 1][0]
+
+            # bi1 = [math.tan(delta_max), -1, self.steering_angles[i] * math.tan(delta_max) - my]
+            # bi2 = [math.tan(delta_min), -1, self.steering_angles[i] * math.tan(delta_max) - my]
+
+            B = sp.Matrix([[1, 2, 3],
+                 [4, 5, 6], 
+                 [7, 8, 9], 
+                 [10, 11, 12],
+                 [13, 14, 15],
+                 [16, 17, 18]])
+
+            v = B.nullspace()
+
+            # v is the vector representing the norms of the discontinuity planes
+
+
             speed = math.hypot(vxi, vyi)
             if speed > 1e-3:                         # hold last angle when stopped
-                angle = math.atan2(vyi, vxi)
+                angle = math.atan2(vyi, vxi) 
                 sign = 1.0
+                # adding this: 
+
+
+                if (angle > delta_max) or (angle < delta_min):
+                    speed *= -1
+                    angle = angle - (math.pi * sign(angle))
+                # end 
+
+
                 if angle > math.pi / 2:
                     sign = -1.0    # flip the sign if the swerve drive turns more than positive 90 degrees
                     angle -= math.pi 
