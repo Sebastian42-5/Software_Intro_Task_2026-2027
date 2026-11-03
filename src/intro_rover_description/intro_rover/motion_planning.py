@@ -12,6 +12,7 @@ import os
 import numpy as np
 import sympy as sp
 
+
 JOINT_NAMES = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'wrist_pitch', 'wrist_roll',
                'fr_swerve_yaw', 'fl_swerve_yaw', 'br_swerve_yaw', 'bl_swerve_yaw',
                'fr_wheel', 'fl_wheel', 'br_wheel', 'bl_wheel']
@@ -35,9 +36,18 @@ JOINT_NAMES = ['shoulder_pitch', 'shoulder_yaw', 'elbow_pitch', 'elbow_roll', 'w
 
 
 
-def sign(x):
-    return (x > 0) - (x < 0)
-
+def sign(matrix):
+    sign_matrix = matrix
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            if sign_matrix[i][j] < 0:
+                sign_matrix[i][j] = -1
+            elif sign_matrix[i][j] > 0:
+                sign_matrix[i][j] = 1
+            else:
+                sign_matrix[i][j] = 0
+    return sign_matrix
+            
 
 WHEEL_SIGN = [1.0, -1.0, 1.0, -1.0] # left wheels have a negative sign and positive wheels have a positive sign corresponding to the urdf poisiton values
 
@@ -153,6 +163,9 @@ class KeybindController(Node):
             keys += os.read(fd, 32).decode(errors = 'ignore')
         return keys
 
+    def select_velocity_vector(self, previous_region_signature, current_region_signature, velocity_matrix):
+        pass
+
         
     def update(self):
         now = self.get_clock().now()
@@ -190,19 +203,31 @@ class KeybindController(Node):
             delta_max = self.steering_wheel_constraints[i + 1][1]
             delta_min = self.steering_wheel_constraints[i + 1][0]
 
-            # bi1 = [math.tan(delta_max), -1, self.steering_angles[i] * math.tan(delta_max) - my]
-            # bi2 = [math.tan(delta_min), -1, self.steering_angles[i] * math.tan(delta_max) - my]
+            # bi1 = [math.tan(delta_max), -1, my * math.tan(delta_max) - mx]
+            # bi2 = [math.tan(delta_min), -1, my * math.tan(delta_max) - mx]
 
-            B = sp.Matrix([[1, 2, 3],
-                 [4, 5, 6], 
-                 [7, 8, 9], 
-                 [10, 11, 12],
-                 [13, 14, 15],
-                 [16, 17, 18]])
+            B = sp.Matrix([[-math.tan(self.steering_wheel_constraints[1][0]), 1, (mx + (my * math.tan(self.steering_wheel_constraints[1][0])))],
+                           [-math.tan(self.steering_wheel_constraints[2][0]), 1, -(mx - (my * math.tan(self.steering_wheel_constraints[2][0])))], 
+                           [-math.tan(self.steering_wheel_constraints[3][0]), 1, -(mx + (my * math.tan(self.steering_wheel_constraints[3][0])))], 
+                           [-math.tan(self.steering_wheel_constraints[4][0]), 1, (mx - (my * math.tan(self.steering_wheel_constraints[4][0])))],
+                           [-math.tan(self.steering_wheel_constraints[1][0]), -1, -(mx + (my * math.tan(self.steering_wheel_constraints[1][0])))],
+                           [-math.tan(self.steering_wheel_constraints[2][0]), -1, (mx - (my * math.tan(self.steering_wheel_constraints[2][0])))],
+                           [-math.tan(self.steering_wheel_constraints[3][0]), -1, (mx + (my * math.tan(self.steering_wheel_constraints[3][0])))],
+                           [-math.tan(self.steering_wheel_constraints[4][0]), -1, -(mx - (my * math.tan(self.steering_wheel_constraints[4][0])))]])
+            
 
-            v = B.nullspace()
+            v = B.nullspace()  
+
+            # wheels 1 and 2 have a constraint of vx - wl * phi < 0
+            # wheels 3 and 4 have a constraint of vx + wr * phi < 0
+
+
+            eight_by_one_matrix = sp.Matrix([1, 1, 1, 1, 1, 1, 1, 1])
 
             # v is the vector representing the norms of the discontinuity planes
+
+            region_signature = 1/2(sign(B @ v) + eight_by_one_matrix)
+
 
 
             speed = math.hypot(vxi, vyi)
