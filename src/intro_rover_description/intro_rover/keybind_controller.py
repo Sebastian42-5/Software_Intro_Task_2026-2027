@@ -31,7 +31,7 @@ DRIVE_KEYS = {
     'u': (0, 0, 1), 'o': (0, 0, -1) # rotation left to right
 }
 
-WHEEL_SIGN = [1.0, -1.0, 1.0, -1.0] # left wheels have a negative sign and positive wheels have a positive sign corresponding to the urdf poisiton values
+WHEEL_SIGN = [1.0, -1.0, 1.0, -1.0] # left wheels have a negative sign and positive wheels have a positive sign corresponding to the urdf position values
 
 class KeybindController(Node):
     def __init__(self):
@@ -41,14 +41,17 @@ class KeybindController(Node):
         self.declare_parameter('joint_topic', 'joint_commands')
         self.declare_parameter('joint_step', 0.1)        # rad per keypress
         self.declare_parameter('lin_speed', 0.5)         # m/s
-        self.declare_parameter('ang_speed', 1.0)         # rad/s
-        self.declare_parameter('hold_time', 0.3)         # s a drive key stays "held"
+        self.declare_parameter('ang_speed', 1)         # rad/s, this is the angular velocity of the robot body
+        self.declare_parameter('steering_joints_speed', 0.9425) # rad/s, this is the max angular velocity for the steering joints
+        self.declare_parameter('alignment_proportional', 0.2) # proportional value to modify the agressiveness of the alignment correction for the steering joints while tunring
+        self.declare_parameter('hold_time', 0.6)         # s a drive key stays "held"
         self.declare_parameter('wheel_radius', 0.21)     # m  (set to your rover)
         self.declare_parameter('module_x', 0.44)          # m, half wheelbase  
         self.declare_parameter('module_y', 0.515)          # m, half track width
         self.declare_parameter('publish_odom', True)
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
+    
 
         self.declare_parameter('mode', 'gazebo')
         self.mode = self.get_parameter('mode').value
@@ -60,6 +63,8 @@ class KeybindController(Node):
         self.joint_step = p('joint_step')
         self.lin_speed = p('lin_speed')
         self.ang_speed = p('ang_speed')
+        self.steering_joints_speed = p('steering_joints_speed')
+        self.alignment_proportional = p('alignment_proportional')
         self.hold_time = p('hold_time')
         self.wheel_radius = p('wheel_radius')
         self.publish_odom = p('publish_odom')
@@ -70,7 +75,7 @@ class KeybindController(Node):
         # module order matches JOINT_NAMES: fr, fl, br, bl  (x fwd, y left)
         # these module are used for the orientation of the wheels
         mx, my = p('module_x'), p('module_y')
-        self.modules = [(mx, my), (mx, -my), (-mx, -my), (-mx, my)]
+        self.modules = [(mx, -my), (mx, my), (-mx, -my), (-mx, my)]
 
         # clamp arm joint limits
 
@@ -78,8 +83,8 @@ class KeybindController(Node):
             (-1.57, 1.57), # shoulder pitch
             (-math.inf, math.inf), # shoulder yaw (continuous)
             (-1.57, 1.57), # elbow pitch s)
-            (-1.57, 1.57), # wrist pitch
-            (-math.inf, math.inf), # elbow roll (continou
+            (-math.inf, math.inf), # elbow roll (continous)
+             (-1.57, 1.57), # wrist pitch
             (-math.inf, math.inf) # wrist roll
         ]
 
@@ -159,8 +164,14 @@ class KeybindController(Node):
                 elif angle < -math.pi / 2:
                     sign = -1.0 # flip the sign if the swerve drive turns less than negative 90 degrees
                     angle += math.pi 
-                self.positions[6 + i] = max(-1.57, min(1.57, angle))
-                self.wheel_vel[i] = sign * WHEEL_SIGN[i] * speed / self.wheel_radius 
+
+                target = max(-1.57, min(1.57, angle))
+                dx_increment = self.steering_joints_speed * self.dt
+                self.positions[6 + i] += max(-dx_increment, min(dx_increment, target - self.positions[6 + i]))
+
+                correction = target - self.positions[6 + i]
+                alignment = max(0.0, 1.0 - (abs(correction) / self.alignment_proportional))
+                self.wheel_vel[i] = min((speed / self.wheel_radius), self.steering_joints_speed) * sign * WHEEL_SIGN[i] * alignment
             else:
                 self.wheel_vel[i] = 0.0
             # this is to control the wheel linear velocity in rviz

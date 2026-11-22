@@ -417,6 +417,7 @@
       </geometry>
     </collision>
   </link>
+  <!--The conversion from rpm to rad/s is rad/s = 2pi / 60 * rpm. 9 rpm would be 0.9425-->
   <joint
     name="fr_swerve_yaw"
     type="revolute">
@@ -433,7 +434,7 @@
       lower="-1.57"
       upper="1.57"
       effort="10"
-      velocity="1" />
+      velocity="0.9425" />  <!--This is where I added the rad/s limit-->
   </joint>
   <link
     name="fr_wheel_link">
@@ -532,7 +533,7 @@
     name="br_swerve_yaw"
     type="revolute">
     <origin
-      xyz="-0.4663 -0.51488 -0.025937"
+      xyz="-0.4663 -0.51488 -0.048437"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -544,7 +545,7 @@
       lower="-1.57"
       upper="1.57"
       effort="10"
-      velocity="1" />
+      velocity="0.9425" />
   </joint>
   <link
     name="br_wheel_link">
@@ -643,7 +644,7 @@
     name="fl_swerve_yaw"
     type="revolute">
     <origin
-      xyz="0.4237 0.51488 -0.025938"
+      xyz="0.4237 0.51488 -0.048438"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -655,7 +656,7 @@
       lower="-1.57"
       upper="1.57"
       effort="10"
-      velocity="1" />
+      velocity="0.9425" />
   </joint>
   <link
     name="fl_wheel_link">
