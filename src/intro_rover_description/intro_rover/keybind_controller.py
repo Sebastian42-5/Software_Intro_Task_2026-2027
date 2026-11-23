@@ -40,18 +40,21 @@ class KeybindController(Node):
 
         self.declare_parameter('joint_topic', 'joint_commands')
         self.declare_parameter('joint_step', 0.1)        # rad per keypress
-        self.declare_parameter('lin_speed', 0.5)         # m/s
+        self.declare_parameter('lin_speed', 1.728)         # m/s
         self.declare_parameter('ang_speed', 1)         # rad/s, this is the angular velocity of the robot body
         self.declare_parameter('steering_joints_speed', 0.9425) # rad/s, this is the max angular velocity for the steering joints
         self.declare_parameter('alignment_proportional', 0.2) # proportional value to modify the agressiveness of the alignment correction for the steering joints while tunring
         self.declare_parameter('hold_time', 0.6)         # s a drive key stays "held"
-        self.declare_parameter('wheel_radius', 0.21)     # m  (set to your rover)
+        self.declare_parameter('wheel_radius', 0.11)     # m 
         self.declare_parameter('module_x', 0.44)          # m, half wheelbase  
         self.declare_parameter('module_y', 0.515)          # m, half track width
         self.declare_parameter('publish_odom', True)
         self.declare_parameter('odom_frame', 'odom')
         self.declare_parameter('base_frame', 'base_link')
-    
+
+        # linear speed = (wheel rpm * (pi * D)) / 60 
+        # linear speed = (150 RPM) * (pi * 2 * 0.11m) / 60 = 1.728
+
 
         self.declare_parameter('mode', 'gazebo')
         self.mode = self.get_parameter('mode').value
@@ -82,6 +85,7 @@ class KeybindController(Node):
         self.joint_limits = [
             (-1.57, 1.57), # shoulder pitch
             (-math.inf, math.inf), # shoulder yaw (continuous)
+        
             (-1.57, 1.57), # elbow pitch s)
             (-math.inf, math.inf), # elbow roll (continous)
              (-1.57, 1.57), # wrist pitch
@@ -167,11 +171,9 @@ class KeybindController(Node):
 
                 target = max(-1.57, min(1.57, angle))
                 dx_increment = self.steering_joints_speed * self.dt
-                self.positions[6 + i] += max(-dx_increment, min(dx_increment, target - self.positions[6 + i]))
+                self.positions[6 + i] += max(-dx_increment, min(dx_increment, target - self.positions[6 + i])) # this is clamping the steering joint velocity
 
-                correction = target - self.positions[6 + i]
-                alignment = max(0.0, 1.0 - (abs(correction) / self.alignment_proportional))
-                self.wheel_vel[i] = min((speed / self.wheel_radius), self.steering_joints_speed) * sign * WHEEL_SIGN[i] * alignment
+                self.wheel_vel[i] = (speed / self.wheel_radius) * sign * WHEEL_SIGN[i] 
             else:
                 self.wheel_vel[i] = 0.0
             # this is to control the wheel linear velocity in rviz
